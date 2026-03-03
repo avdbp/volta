@@ -63,10 +63,15 @@ export default function AdminPage() {
   async function handleManualReset() {
     setResetStatus('loading')
     try {
+      const token = localStorage.getItem('volta_admin_token')
+      if (!token) {
+        router.push('/admin/login')
+        return
+      }
       const res = await fetch('/api/reset', {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       if (!res.ok) throw new Error('Reset failed')

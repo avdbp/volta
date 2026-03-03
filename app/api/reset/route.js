@@ -3,6 +3,7 @@ import connectDB from '../../../lib/mongodb'
 import Hero from '../../../models/Hero'
 import Offer from '../../../models/Offer'
 import SiteSettings from '../../../models/SiteSettings'
+import { verifyToken } from '../../../lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,13 +52,15 @@ const DEFAULT_SETTINGS = {
 export async function GET(request) {
   try {
     const authHeader = request.headers.get('Authorization')
-    const expectedSecret = process.env.NEXT_PUBLIC_CRON_SECRET
-    if (!expectedSecret || !authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const token = authHeader.split(' ')[1]
-    if (token !== expectedSecret) {
-      return NextResponse.json({ error: 'Invalid secret' }, { status: 401 })
+    const cronSecret = process.env.NEXT_PUBLIC_CRON_SECRET
+    const adminPayload = verifyToken(token)
+    const validCron = cronSecret && token === cronSecret
+    if (!adminPayload && !validCron) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     await connectDB()
