@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+//  trigger deploy
 const nextConfig = {
   images: {
     remotePatterns: [
